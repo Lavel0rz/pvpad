@@ -1,0 +1,43 @@
+name: Sync lib submodules
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Add pinned forge dependencies as git submodules
+        run: |
+          if [ -d lib/forge-std/.git ] || [ -f lib/forge-std/.git ]; then
+            echo "lib/ submodules already present"
+            exit 0
+          fi
+
+          git config user.email "85870602+Lavel0rz@users.noreply.github.com"
+          git config user.name "Lavel0rz"
+
+          git submodule add https://github.com/foundry-rs/forge-std lib/forge-std
+          git -C lib/forge-std checkout bf647bd6046f2f7da30d0c2bf435e5c76a780c1b
+
+          git submodule add https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts
+          git -C lib/openzeppelin-contracts checkout dbb6104ce834628e473d2173bbc9d47f81a9eec3
+
+          git submodule add https://github.com/Uniswap/v4-core lib/v4-core
+          git -C lib/v4-core checkout e50237c43811bd9b526eff40f26772152a42daba
+
+          git submodule add https://github.com/Uniswap/v4-periphery lib/v4-periphery
+          git -C lib/v4-periphery checkout 9969eec44cfdf07e24b41de47f40276a58401976
+
+          git add .gitmodules lib
+          git commit -m "Add lib/ forge dependencies as git submodules (pinned SHAs)"
+          git push origin HEAD:main
